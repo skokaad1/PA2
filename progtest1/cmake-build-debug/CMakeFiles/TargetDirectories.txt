@@ -1,0 +1,3 @@
+C:/FIT/PA2/progtest1/cmake-build-debug/CMakeFiles/progtest1.dir
+C:/FIT/PA2/progtest1/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/FIT/PA2/progtest1/cmake-build-debug/CMakeFiles/rebuild_cache.dir
