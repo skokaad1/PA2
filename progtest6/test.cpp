@@ -30,6 +30,9 @@ class CData{
       name = temp_name;
       size = temp_size;
     }
+    virtual ~CData(){
+
+    }
     size_t getSize(){
       return size;
     }
@@ -60,14 +63,19 @@ class CData{
 };
 
 class CDataTypeInt : public CData{
+  public:
   CDataTypeInt() : CData("int", 4){
   }
   CData * clone () const {
-  return new CDataTypeInt (*this);
+    return new CDataTypeInt (*this);
   }
 };
 class CDataTypeDouble : public CData{
+  public:
   CDataTypeDouble() : CData("double", 8){
+  }
+  CData * clone () const {
+    return new CDataTypeDouble (*this);
   }
 };
 class CDataTypeEnum : public CData{
@@ -108,13 +116,49 @@ class CDataTypeEnum : public CData{
     return false;
   }
 
+  CData * clone () const {
+    return new CDataTypeEnum (*this);
+  }
+
   private:
   vector<string> enum_storage = {};
 };
 class CDataTypeStruct : public CData{
+  public:
   CDataTypeStruct() : CData("struct", 0){
   }
+  ~CDataTypeStruct(){
+       for (auto it = struct_storage.begin(); it != struct_storage.end(); it++) { 
+         delete ((*it).second); }
+  }
+  CDataTypeStruct& addField(string name,const CData& object){
+    for (auto it = struct_storage.begin(); it != struct_storage.end(); it++){
+         if ((*it).first == name){
+           throw  invalid_argument( "Duplicate field: " + name);
+         }
+    }
+    pair<string , CData *> tmp;
+    tmp.first = name;
+    tmp.second = object.clone();
+    struct_storage.push_back(tmp);
+    return *this;
+  }
 
+  CData* field(string name){
+    for (auto it = struct_storage.begin(); it != struct_storage.end(); it++){
+         if ((*it).first == name){
+           return it->second;
+         }
+    }
+    throw  invalid_argument( "Unknown field: m_Fail" + name);
+  }
+
+  CData * clone () const {
+    return new CDataTypeStruct (*this);
+  }
+
+  private:
+  vector<pair<string , CData *>> struct_storage = {};
 };
 class CDataTypeArray : public CData{
   // todo
@@ -159,6 +203,12 @@ static bool whitespaceMatch (const T_ & x, const string & ref )
 }
 int main ( void )
 {
+
+  CDataTypeStruct workffs = CDataTypeStruct ();
+  workffs. addField ( "m_Length", CDataTypeInt () )
+  . addField ( "m_Status", CDataTypeEnum ().
+  add ( "NEW" ) )
+  ;
 
   // CDataTypeStruct  a = CDataTypeStruct () .
   //                       addField ( "m_Length", CDataTypeInt () ) .
