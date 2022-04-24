@@ -31,7 +31,7 @@ class CData{
       size = temp_size;
     }
     virtual ~CData(){
-
+     // cout << "deleted : " << name << endl;
     }
     size_t getSize(){
       return size;
@@ -51,8 +51,16 @@ class CData{
       return true;
     }
 
+    virtual string Name()const {
+		  return name;
+	  }
+
+    virtual ostream& Output(ostream& stream)const {
+		return stream << name;
+	  }
+
     friend ostream &operator<<(ostream &oStream, const CData &data){
-       return oStream << data.name << flush;
+       return data.Output(oStream);
     }  
   
     virtual CData * clone () const = 0;
@@ -66,41 +74,57 @@ class CDataTypeInt : public CData{
   public:
   CDataTypeInt() : CData("int", 4){
   }
-  CData * clone () const {
-    return new CDataTypeInt (*this);
+  ~CDataTypeInt(){
+
+  }
+  CData * clone () const override {
+    return new CDataTypeInt ();
   }
 };
 class CDataTypeDouble : public CData{
   public:
   CDataTypeDouble() : CData("double", 8){
   }
-  CData * clone () const {
-    return new CDataTypeDouble (*this);
+  ~CDataTypeDouble(){
+
+  }
+  CData * clone () const override {
+    return new CDataTypeDouble ();
   }
 };
 class CDataTypeEnum : public CData{
   public:
   CDataTypeEnum() : CData("enum", 0){
   }
+  ~CDataTypeEnum(){
 
+  }
   CDataTypeEnum& add(string temp){
-    if (*find(enum_storage.begin(), enum_storage.end(), temp) != temp){
-    enum_storage.push_back(temp);
-    size++;
+    for (auto it = enum_storage.begin(); it != enum_storage.end(); it++){
+         if ((*it) == temp){
+           throw  invalid_argument( "Duplicate enum value: " + temp);
+         }
     }
-    else{
-      throw  invalid_argument( "Duplicate enum value: " + temp);
-    }
+     enum_storage.push_back(temp);
+     size++;
     return *this;
   }
 
-  friend ostream &operator<<(ostream &oStream, const CDataTypeEnum &data){
-      oStream << data.name << "{" << endl;
-      for (auto it = data.enum_storage.begin(); it != data.enum_storage.end(); it++){
-         oStream << *it << "," << endl;
-      }
-      return oStream << "}" << flush;
-  }
+  // ostream& Output(ostream& oStream)const override {
+  //     oStream << name << "{" << endl;
+  //     for (auto it = enum_storage.begin(); it != enum_storage.end(); it++){
+  //        oStream << *it << "," << endl;
+  //     }
+  //     return oStream << "}" << flush;
+  // }
+    virtual string Name()const override{
+      stringstream oStream;
+      oStream << name << "{" << endl;
+       for (auto it = enum_storage.begin(); it != enum_storage.end(); it++){
+          oStream << *it << "," << endl;
+       }
+		  return oStream.str();
+	  }
 
   bool operator == (const CDataTypeEnum & Next_data) const{
     if (Next_data.name == name && Next_data.size == size && equal(enum_storage.begin(), enum_storage.end(), Next_data.enum_storage.begin())){
@@ -116,8 +140,13 @@ class CDataTypeEnum : public CData{
     return false;
   }
 
-  CData * clone () const {
-    return new CDataTypeEnum (*this);
+  CData * clone () const override {
+
+    auto temp = new CDataTypeEnum();
+		 for (auto it = enum_storage.begin(); it != enum_storage.end(); it++){
+			temp->enum_storage.push_back(*(it));
+		}
+    return temp;
   }
 
   private:
@@ -127,9 +156,10 @@ class CDataTypeStruct : public CData{
   public:
   CDataTypeStruct() : CData("struct", 0){
   }
-  ~CDataTypeStruct(){
+  virtual ~CDataTypeStruct() override{
        for (auto it = struct_storage.begin(); it != struct_storage.end(); it++) { 
-         delete ((*it).second); }
+         delete it->second;
+         }
   }
   CDataTypeStruct& addField(string name,const CData& object){
     for (auto it = struct_storage.begin(); it != struct_storage.end(); it++){
@@ -137,10 +167,8 @@ class CDataTypeStruct : public CData{
            throw  invalid_argument( "Duplicate field: " + name);
          }
     }
-    pair<string , CData *> tmp;
-    tmp.first = name;
-    tmp.second = object.clone();
-    struct_storage.push_back(tmp);
+    struct_storage.push_back(pair<string, CData *> (name,object.clone()) );
+    //cout << "hello" << object << endl;
     return *this;
   }
 
@@ -153,8 +181,16 @@ class CDataTypeStruct : public CData{
     throw  invalid_argument( "Unknown field: m_Fail" + name);
   }
 
-  CData * clone () const {
+  CData * clone () const override {
     return new CDataTypeStruct (*this);
+  }
+
+  ostream& Output(ostream& oStream)const override {
+    oStream << name << "{" << endl;
+    for (auto it = struct_storage.begin(); it != struct_storage.end(); it++){
+      oStream << (*(*it).second).Name() << " " << (*it).first << ";" << endl;
+    }
+    return oStream << "}" << flush;
   }
 
   private:
@@ -206,49 +242,49 @@ int main ( void )
 
   CDataTypeStruct workffs = CDataTypeStruct ();
   workffs. addField ( "m_Length", CDataTypeInt () )
-  . addField ( "m_Status", CDataTypeEnum ().
-  add ( "NEW" ) )
+  . addField ( "m_Status", CDataTypeEnum ()
+  .add ( "NEW" ) )
   ;
 
-  // CDataTypeStruct  a = CDataTypeStruct () .
-  //                       addField ( "m_Length", CDataTypeInt () ) .
-  //                       addField ( "m_Status", CDataTypeEnum () . 
-  //                         add ( "NEW" ) . 
-  //                         add ( "FIXED" ) . 
-  //                         add ( "BROKEN" ) . 
-  //                         add ( "DEAD" ) ).
-  //                       addField ( "m_Ratio", CDataTypeDouble () );
-
-  // assert ( whitespaceMatch ( a, "struct\n"
-  //   "{\n"
-  //   "  int m_Length;\n"
-  //   "  enum\n"
-  //   "  {\n"
-  //   "    NEW,\n"
-  //   "    FIXED,\n"
-  //   "    BROKEN,\n"
-  //   "    DEAD\n"
-  //   "  } m_Status;\n"
-  //   "  double m_Ratio;\n"
-  //   "}") );
+  CDataTypeStruct  a = CDataTypeStruct () .
+                        addField ( "m_Length", CDataTypeInt () ) .
+                        addField ( "m_Status", CDataTypeEnum () . 
+                          add ( "NEW" ) . 
+                          add ( "FIXED" ) . 
+                          add ( "BROKEN" ) . 
+                          add ( "DEAD" ) ).
+                        addField ( "m_Ratio", CDataTypeDouble () );
+  cout << "fuck me sideways" << endl;
+  assert ( whitespaceMatch ( a, "struct\n"
+    "{\n"
+    "  int m_Length;\n"
+    "  enum\n"
+    "  {\n"
+    "    NEW,\n"
+    "    FIXED,\n"
+    "    BROKEN,\n"
+    "    DEAD\n"
+    "  } m_Status;\n"
+    "  double m_Ratio;\n"
+    "}") );
+  cout << "segfault before" << endl;
+  CDataTypeStruct b = CDataTypeStruct () .
+                        addField ( "m_Length", CDataTypeInt () ) .
+                        addField ( "m_Status", CDataTypeEnum () . 
+                          add ( "NEW" ) . 
+                          add ( "FIXED" ) . 
+                          add ( "BROKEN" ) . 
+                          add ( "READY" ) ).
+                        addField ( "m_Ratio", CDataTypeDouble () );
   
-  // CDataTypeStruct b = CDataTypeStruct () .
-  //                       addField ( "m_Length", CDataTypeInt () ) .
-  //                       addField ( "m_Status", CDataTypeEnum () . 
-  //                         add ( "NEW" ) . 
-  //                         add ( "FIXED" ) . 
-  //                         add ( "BROKEN" ) . 
-  //                         add ( "READY" ) ).
-  //                       addField ( "m_Ratio", CDataTypeDouble () );
-  
-  // CDataTypeStruct c =  CDataTypeStruct () .
-  //                       addField ( "m_First", CDataTypeInt () ) .
-  //                       addField ( "m_Second", CDataTypeEnum () . 
-  //                         add ( "NEW" ) . 
-  //                         add ( "FIXED" ) . 
-  //                         add ( "BROKEN" ) . 
-  //                         add ( "DEAD" ) ).
-  //                       addField ( "m_Third", CDataTypeDouble () );
+  CDataTypeStruct c =  CDataTypeStruct () .
+                        addField ( "m_First", CDataTypeInt () ) .
+                        addField ( "m_Second", CDataTypeEnum () . 
+                          add ( "NEW" ) . 
+                          add ( "FIXED" ) . 
+                          add ( "BROKEN" ) . 
+                          add ( "DEAD" ) ).
+                        addField ( "m_Third", CDataTypeDouble () );
 
   // CDataTypeStruct  d = CDataTypeStruct () .
   //                       addField ( "m_Length", CDataTypeInt () ) .
