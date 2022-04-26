@@ -26,128 +26,170 @@ using namespace std;
 
 class CData{
   public:
+    virtual ~CData() = default;
+
     CData(string temp_name, size_t temp_size){
       name = temp_name;
       size = temp_size;
     }
-    virtual ~CData(){
-     // cout << "deleted : " << name << endl;
-    }
-    size_t getSize(){
+    virtual size_t getSize() const {
       return size;
     }
 
     bool operator == (const CData & Next_data) const{
-      if (Next_data.name == name && Next_data.size == size){
+      if (Next_data.Name() == Name() /* && Next_data.size == size */ && comparator(Next_data)) {
         return true;
       }
       return false;
     }
 
     bool operator != (const CData & Next_data) const{
-      if (Next_data.name == name && Next_data.size == size){
+      if (Next_data.Name() == Name() /* && Next_data.size == size*/ && comparator(Next_data)) {
         return false;
       }
       return true;
     }
+    virtual bool comparator(const CData & Next_data)const{
+      return true;
+    }
+    virtual string Name()const = 0;
+    virtual const CData& field(const string& name)const = 0;
 
-    virtual string Name()const {
-		  return name;
-	  }
-
-    virtual ostream& Output(ostream& stream)const {
-		return stream << name;
-	  }
+    virtual ostream& Output(ostream& stream)const = 0;
+    //{
+		//return stream << Name();
+	  //}
 
     friend ostream &operator<<(ostream &oStream, const CData &data){
        return data.Output(oStream);
     }  
-  
-    virtual CData * clone () const = 0;
+    virtual shared_ptr<CData> clone () const = 0;
 
+  //    virtual shared_ptr<CData> CloneImpl() const =0; 
+  //  virtual CData * clone () = 0 ;
   protected:
   string name;
   size_t size;
 };
+
 
 class CDataTypeInt : public CData{
   public:
   CDataTypeInt() : CData("int", 4){
   }
   ~CDataTypeInt(){
+  //  cout << "me!!!! " << endl;
+  }
 
+  virtual const CData& field(const string& name)const{
+      throw invalid_argument("Cannot use field() for type: int");
+      return *this;
   }
-  CData * clone () const override {
-    return new CDataTypeInt ();
+
+  virtual  string Name()const override{
+		  return "int";
+	  }
+
+
+  virtual shared_ptr<CData> clone () const{
+          return make_shared<CDataTypeInt> (CDataTypeInt());
   }
+  
+  virtual ostream& Output(ostream& stream)const {
+    return stream << Name();
+	}
 };
 class CDataTypeDouble : public CData{
   public:
   CDataTypeDouble() : CData("double", 8){
   }
   ~CDataTypeDouble(){
+   // cout << "me!!!! " << endl;
+  }
 
+  virtual  string Name()const override{
+		  return "double";
+	}
+
+  virtual const CData& field(const string& name)const{
+      throw invalid_argument("Cannot use field() for type: double");
+    return *this; 
   }
-  CData * clone () const override {
-    return new CDataTypeDouble ();
-  }
+
+  virtual ostream& Output(ostream& stream)const {
+    return stream << Name();
+	}
+
+  virtual shared_ptr<CData> clone () const{
+            return make_shared<CDataTypeDouble> (CDataTypeDouble());
+    }
+
 };
 class CDataTypeEnum : public CData{
   public:
-  CDataTypeEnum() : CData("enum", 0){
+  CDataTypeEnum() : CData("enum", 4){
   }
-  ~CDataTypeEnum(){
+  CDataTypeEnum(const CDataTypeEnum& old) : CData("enum", 4){
+    for (auto it = old.enum_storage.begin(); it != old.enum_storage.end(); it++){
+		enum_storage.push_back(*it);
+    }
+  }
+  ~CDataTypeEnum(){}
 
+  size_t getSize()const{
+    size_t counter = 0;
+      for (auto it = enum_storage.begin(); it != enum_storage.end(); it++){
+        counter ++;
+      }
+    return counter;
   }
-  CDataTypeEnum& add(string temp){
+
+  CDataTypeEnum& add(const string& temp) {
     for (auto it = enum_storage.begin(); it != enum_storage.end(); it++){
+        if(it != enum_storage.end()){
          if ((*it) == temp){
            throw  invalid_argument( "Duplicate enum value: " + temp);
          }
-    }
+    }}
      enum_storage.push_back(temp);
      size++;
     return *this;
   }
 
-  // ostream& Output(ostream& oStream)const override {
-  //     oStream << name << "{" << endl;
-  //     for (auto it = enum_storage.begin(); it != enum_storage.end(); it++){
-  //        oStream << *it << "," << endl;
-  //     }
-  //     return oStream << "}" << flush;
-  // }
+  virtual const  CData& field(const string& name)const{
+      throw invalid_argument("Cannot use field() for type: " + Name());
+      return *this;
+  }
+
+  virtual ostream& Output(ostream& stream)const {
+    return stream << Name();
+	}
     virtual string Name()const override{
       stringstream oStream;
-      oStream << name << "{" << endl;
+      oStream << name << "\n{" << endl;
+      int help = 0;
        for (auto it = enum_storage.begin(); it != enum_storage.end(); it++){
-          oStream << *it << "," << endl;
+          if (help > 0){
+          oStream << "," << endl;
+          }
+          oStream << "  " <<enum_storage[help];
+          help++;
        }
+       oStream << "\n" << "}" ;
 		  return oStream.str();
 	  }
-
-  bool operator == (const CDataTypeEnum & Next_data) const{
-    if (Next_data.name == name && Next_data.size == size && equal(enum_storage.begin(), enum_storage.end(), Next_data.enum_storage.begin())){
-      return true;
+  
+  bool comparator(const CData & Next_data)const{
+    if(typeid(Next_data) == typeid(*this)){
+     return true;
     }
+    //cout << "fokked" << endl;
     return false;
   }
 
-  bool operator != (const CDataTypeEnum & Next_data) const{
-    if (Next_data.name == name && Next_data.size == size && equal(enum_storage.begin(), enum_storage.end(), Next_data.enum_storage.begin())){
-      return true;
+  virtual shared_ptr<CData> clone () const{
+           return make_shared<CDataTypeEnum> (CDataTypeEnum(*this));
     }
-    return false;
-  }
-
-  CData * clone () const override {
-
-    auto temp = new CDataTypeEnum();
-		 for (auto it = enum_storage.begin(); it != enum_storage.end(); it++){
-			temp->enum_storage.push_back(*(it));
-		}
-    return temp;
-  }
 
   private:
   vector<string> enum_storage = {};
@@ -156,45 +198,86 @@ class CDataTypeStruct : public CData{
   public:
   CDataTypeStruct() : CData("struct", 0){
   }
-  virtual ~CDataTypeStruct() override{
-       for (auto it = struct_storage.begin(); it != struct_storage.end(); it++) { 
-         delete it->second;
-         }
+  CDataTypeStruct(const CDataTypeStruct& old) : CData("struct", 0){
+    for (auto it = old.struct_storage.begin(); it != old.struct_storage.end(); it++){
+		struct_storage.push_back(*it);
+    }
   }
-  CDataTypeStruct& addField(string name,const CData& object){
+  
+  ~CDataTypeStruct(){
     for (auto it = struct_storage.begin(); it != struct_storage.end(); it++){
-         if ((*it).first == name){
+     // delete it->second;
+    //cout << it->second.shared() << endl;
+    //delete it->second;
+    }
+  }
+
+  size_t getSize() const{
+    size_t counter = 0;
+      for (auto it = struct_storage.begin(); it != struct_storage.end(); it++){
+        counter += it->second->getSize();
+      }
+    return counter;
+  }
+
+   CDataTypeStruct& addField(const string& name,const CData& object){
+    for (auto it = struct_storage.begin(); it != struct_storage.end(); it++){
+      if(it != struct_storage.end()){
+         if (it->first == name){
            throw  invalid_argument( "Duplicate field: " + name);
          }
-    }
-    struct_storage.push_back(pair<string, CData *> (name,object.clone()) );
-    //cout << "hello" << object << endl;
+    }}
+    struct_storage.emplace_back(pair<string, shared_ptr<CData>> (name, object.clone()));
     return *this;
   }
 
-  CData* field(string name){
+  const CData& field(const string& name )const{
+    ostringstream oStream;
     for (auto it = struct_storage.begin(); it != struct_storage.end(); it++){
-         if ((*it).first == name){
-           return it->second;
+         if (it->first == name){
+           return *(it->second);
          }
     }
-    throw  invalid_argument( "Unknown field: m_Fail" + name);
+    throw  invalid_argument( "Unknown field: " + name);
+    return *this;
   }
 
-  CData * clone () const override {
-    return new CDataTypeStruct (*this);
+  virtual shared_ptr<CData> clone () const{
+      return make_shared<CDataTypeStruct> (CDataTypeStruct(*this));
   }
 
-  ostream& Output(ostream& oStream)const override {
+  virtual bool comparator(const CData & Next_dataaa)const override{
+    if(typeid(Next_dataaa) == typeid(*this)){
+      bool diff_flag = 0;
+      shared_ptr<CData> killmenow= Next_dataaa.clone();
+      CData * dumb1 = killmenow.get();
+      auto Next_data = static_cast<CDataTypeStruct*>(dumb1);
+        if(Next_data->struct_storage.size() == struct_storage.size()){
+        for (size_t i = 0 ; i < struct_storage.size(); i++){
+          if(Next_data->struct_storage[i].second->Name() != struct_storage[i].second->Name()){
+            diff_flag = 1;
+          }
+        }
+            if (diff_flag == 0){
+      return true;
+      }}
+    }
+    return false;
+  }
+
+  ostream& Output(ostream& oStream)const override{
     oStream << name << "{" << endl;
     for (auto it = struct_storage.begin(); it != struct_storage.end(); it++){
-      oStream << (*(*it).second).Name() << " " << (*it).first << ";" << endl;
+      it->second->Output(oStream) << " " << it->first << ";" << endl;
     }
-    return oStream << "}" << flush;
+    return oStream << "}";
   }
 
+  virtual  string Name()const override{
+		  return "struct";
+	  }
   private:
-  vector<pair<string , CData *>> struct_storage = {};
+  vector<pair<string , shared_ptr<CData>>> struct_storage = {};
 };
 class CDataTypeArray : public CData{
   // todo
@@ -204,643 +287,260 @@ class CDataTypePtr : public CData{
 };
 #ifndef __PROGTEST__
 
-string duha_jeeee(const string & str, size_t pos) {
-    return str.substr(0, pos) + "\033[31m" + str.substr(pos) + "\033[0m";
+static bool whitespaceMatch(const string& alp_a,
+    const string& alp_b) {
+    string a = alp_a;
+    string b = alp_b;
+    for (size_t i = 0; i < a.length(); i++)
+    {
+        if (a[i] == ' ' || a[i] == '\n' || a[i] == '\t') {
+            a.erase(i, 1);
+            i--;
+        }
+        if (b[i] == ' ' || b[i] == '\n' || b[i] == '\t') {
+            b.erase(i, 1);
+            i--;
+        }
+    }
+    for (size_t i = 0; i < b.length(); i++)
+    {
+        if (b[i] == ' ' || b[i] == '\n' || b[i] == '\t') {
+            b.erase(i, 1);
+            i--;
+        }
+    }
+    if (a == b) {
+        return true;
+    }
+    cout << a << endl;
+    cout << b << endl;
+    return false;
 }
 
-static bool whitespaceMatch ( const string & a, const string & b ){
-    size_t i =0, j =0;
-  for(i = 0,j=0; i < a.length() && j<b.length();  ) {
-      if(isspace(a[i])) {
-          i++;
-          continue;
-      }
-      if(isspace(b[j])) {
-          j++;
-          continue;
-      }
-      if(a[i++] != b[j++]) {
-          std::cout << "You:  " << duha_jeeee(a,i) << "\nCORRECT:  " << duha_jeeee(b,j) << std::endl;
-          return false;
-      }
-  }
-  if(i!=a.length() || j!=b.length()) {
-      std::cout << "You:  " << duha_jeeee(a,i) << "\nCORRECT:  " << duha_jeeee(b,j) << std::endl;
-      return false;
-  }
-  return true;
-}
 template <typename T_>
-static bool whitespaceMatch (const T_ & x, const string & ref )
+
+static bool whitespaceMatch(const T_& x, const string& ref)
 {
-  ostringstream oss;
-  oss << x;
-  return whitespaceMatch ( oss . str (), ref );
+    ostringstream oss;
+    oss << x;
+    return whitespaceMatch(oss.str(), ref);
 }
+
 int main ( void )
 {
 
-  CDataTypeStruct workffs = CDataTypeStruct ();
-  workffs. addField ( "m_Length", CDataTypeInt () )
-  . addField ( "m_Status", CDataTypeEnum ()
-  .add ( "NEW" ) )
-  ;
+    CDataTypeStruct  a = CDataTypeStruct() .
+        addField("m_Length", CDataTypeInt()) .
+        addField("m_Status", CDataTypeEnum() .
+            add("NEW") .
+            add("FIXED") .
+            add("BROKEN") .
+            add("DEAD")).
+        addField("m_Ratio", CDataTypeDouble());
 
-  CDataTypeStruct  a = CDataTypeStruct () .
-                        addField ( "m_Length", CDataTypeInt () ) .
-                        addField ( "m_Status", CDataTypeEnum () . 
-                          add ( "NEW" ) . 
-                          add ( "FIXED" ) . 
-                          add ( "BROKEN" ) . 
-                          add ( "DEAD" ) ).
-                        addField ( "m_Ratio", CDataTypeDouble () );
-  cout << "fuck me sideways" << endl;
-  assert ( whitespaceMatch ( a, "struct\n"
-    "{\n"
-    "  int m_Length;\n"
-    "  enum\n"
-    "  {\n"
-    "    NEW,\n"
-    "    FIXED,\n"
-    "    BROKEN,\n"
-    "    DEAD\n"
-    "  } m_Status;\n"
-    "  double m_Ratio;\n"
-    "}") );
-  cout << "segfault before" << endl;
-  CDataTypeStruct b = CDataTypeStruct () .
-                        addField ( "m_Length", CDataTypeInt () ) .
-                        addField ( "m_Status", CDataTypeEnum () . 
-                          add ( "NEW" ) . 
-                          add ( "FIXED" ) . 
-                          add ( "BROKEN" ) . 
-                          add ( "READY" ) ).
-                        addField ( "m_Ratio", CDataTypeDouble () );
-  
-  CDataTypeStruct c =  CDataTypeStruct () .
-                        addField ( "m_First", CDataTypeInt () ) .
-                        addField ( "m_Second", CDataTypeEnum () . 
-                          add ( "NEW" ) . 
-                          add ( "FIXED" ) . 
-                          add ( "BROKEN" ) . 
-                          add ( "DEAD" ) ).
-                        addField ( "m_Third", CDataTypeDouble () );
+    CDataTypeStruct b = CDataTypeStruct() .
+        addField("m_Length", CDataTypeInt()) .
+        addField("m_Status", CDataTypeEnum() .
+            add("NEW") .
+            add("FIXED") .
+            add("BROKEN") .
+            add("READY")).
+        addField("m_Ratio", CDataTypeDouble());
 
-  // CDataTypeStruct  d = CDataTypeStruct () .
-  //                       addField ( "m_Length", CDataTypeInt () ) .
-  //                       addField ( "m_Status", CDataTypeEnum () . 
-  //                         add ( "NEW" ) . 
-  //                         add ( "FIXED" ) . 
-  //                         add ( "BROKEN" ) . 
-  //                         add ( "DEAD" ) ).
-  //                       addField ( "m_Ratio", CDataTypeInt () );
+    CDataTypeStruct c = CDataTypeStruct() .
+        addField("m_First", CDataTypeInt()) .
+        addField("m_Second", CDataTypeEnum() .
+            add("NEW") .
+            add("FIXED") .
+            add("BROKEN") .
+            add("DEAD")).
+        addField("m_Third", CDataTypeDouble());
 
-  // assert ( whitespaceMatch ( b, "struct\n"
-  //   "{\n"
-  //   "  int m_Length;\n"
-  //   "  enum\n"
-  //   "  {\n"
-  //   "    NEW,\n"
-  //   "    FIXED,\n"
-  //   "    BROKEN,\n"
-  //   "    READY\n"
-  //   "  } m_Status;\n"
-  //   "  double m_Ratio;\n"
-  //   "}") );
+    CDataTypeStruct  d = CDataTypeStruct() .
+        addField("m_Length", CDataTypeInt()) .
+        addField("m_Status", CDataTypeEnum() .
+            add("NEW") .
+            add("FIXED") .
+            add("BROKEN") .
+            add("DEAD")).
+        addField("m_Ratio", CDataTypeInt());
+    assert(whitespaceMatch(a, "struct\n"
+        "{\n"
+        "  int m_Length;\n"
+        "  enum\n"
+        "  {\n"
+        "    NEW,\n"
+        "    FIXED,\n"
+        "    BROKEN,\n"
+        "    DEAD\n"
+        "  } m_Status;\n"
+        "  double m_Ratio;\n"
+        "}"));
 
-  // assert ( whitespaceMatch ( c, "struct\n"
-  //   "{\n"
-  //   "  int m_First;\n"
-  //   "  enum\n"
-  //   "  {\n"
-  //   "    NEW,\n"
-  //   "    FIXED,\n"
-  //   "    BROKEN,\n"
-  //   "    DEAD\n"
-  //   "  } m_Second;\n"
-  //   "  double m_Third;\n"
-  //   "}") );
+    assert(whitespaceMatch(b, "struct\n"
+        "{\n"
+        "  int m_Length;\n"
+        "  enum\n"
+        "  {\n"
+        "    NEW,\n"
+        "    FIXED,\n"
+        "    BROKEN,\n"
+        "    READY\n"
+        "  } m_Status;\n"
+        "  double m_Ratio;\n"
+        "}"));
 
-  // assert ( whitespaceMatch ( d, "struct\n"
-  //   "{\n"
-  //   "  int m_Length;\n"
-  //   "  enum\n"
-  //   "  {\n"
-  //   "    NEW,\n"
-  //   "    FIXED,\n"
-  //   "    BROKEN,\n"
-  //   "    DEAD\n"
-  //   "  } m_Status;\n"
-  //   "  int m_Ratio;\n"
-  //   "}") );
+    assert(whitespaceMatch(c, "struct\n"
+        "{\n"
+        "  int m_First;\n"
+        "  enum\n"
+        "  {\n"
+        "    NEW,\n"
+        "    FIXED,\n"
+        "    BROKEN,\n"
+        "    DEAD\n"
+        "  } m_Second;\n"
+        "  double m_Third;\n"
+        "}"));
 
-  // assert ( a != b );
-  // assert ( a == c );
-  // assert ( a != d );
-  // assert ( a != CDataTypeInt() );
-  // assert ( whitespaceMatch ( a . field ( "m_Status" ), "enum\n"
-  //   "{\n"
-  //   "  NEW,\n"
-  //   "  FIXED,\n"
-  //   "  BROKEN,\n"
-  //   "  DEAD\n"
-  //   "}") );
+    assert(whitespaceMatch(d, "struct\n"
+        "{\n"
+        "  int m_Length;\n"
+        "  enum\n"
+        "  {\n"
+        "    NEW,\n"
+        "    FIXED,\n"
+        "    BROKEN,\n"
+        "    DEAD\n"
+        "  } m_Status;\n"
+        "  int m_Ratio;\n"
+        "}"));
 
-  // b . addField ( "m_Other", a );
+    assert(a != b);
+    assert(a == c);
+    assert(a != d);
+    //whitespaceMatch(a.field("m_Status"), CDataTypeEnum().add("NEW").add("FIXED").add("BROKEN").add("DEAD"));
+    //cout << a.field("m_Status").Name() << a.field("m_Status") << "aaaaaaaaaaaaaaaaa" << endl;
+    //cout << CDataTypeEnum().add("NEW").add("FIXED").add("BROKEN").add("DEAD").Name() << CDataTypeEnum().add("NEW").add("FIXED").add("BROKEN").add("DEAD") << "aaaaaaaaaaaa" << endl;
+    assert(a.field("m_Status") == CDataTypeEnum().add("NEW").add("FIXED").add("BROKEN").add("DEAD"));
+    assert(a.field("m_Status") != CDataTypeEnum().add("NEW").add("BROKEN").add("FIXED").add("DEAD"));
+    assert(a != CDataTypeInt());
+    assert(whitespaceMatch(a.field("m_Status"), "enum\n"
+        "{\n"
+        "  NEW,\n"
+        "  FIXED,\n"
+        "  BROKEN,\n"
+        "  DEAD\n"
+        "}"));
 
-  // a . addField ( "m_Sum", CDataTypeInt ());
+    CDataTypeStruct aOld = a;
+    b.addField("m_Other", CDataTypeDouble());
 
-  // assert ( whitespaceMatch ( a, "struct\n"
-  //   "{\n"
-  //   "  int m_Length;\n"
-  //   "  enum\n"
-  //   "  {\n"
-  //   "    NEW,\n"
-  //   "    FIXED,\n"
-  //   "    BROKEN,\n"
-  //   "    DEAD\n"
-  //   "  } m_Status;\n"
-  //   "  double m_Ratio;\n"
-  //   "  int m_Sum;\n"
-  //   "}") );
+    a.addField("m_Sum", CDataTypeInt());
 
-  // assert ( whitespaceMatch ( b, "struct\n"
-  //   "{\n"
-  //   "  int m_Length;\n"
-  //   "  enum\n"
-  //   "  {\n"
-  //   "    NEW,\n"
-  //   "    FIXED,\n"
-  //   "    BROKEN,\n"
-  //   "    READY\n"
-  //   "  } m_Status;\n"
-  //   "  double m_Ratio;\n"
-  //   "  struct\n"
-  //   "  {\n"
-  //   "    int m_Length;\n"
-  //   "    enum\n"
-  //   "    {\n"
-  //   "      NEW,\n"
-  //   "      FIXED,\n"
-  //   "      BROKEN,\n"
-  //   "      DEAD\n"
-  //   "    } m_Status;\n"
-  //   "    double m_Ratio;\n"
-  //   "  } m_Other;\n"
-  //   "}") );
+    assert(a != aOld);
+    assert(a != c);
+    assert(aOld == c);
+    assert(whitespaceMatch(a, "struct\n"
+        "{\n"
+        "  int m_Length;\n"
+        "  enum\n"
+        "  {\n"
+        "    NEW,\n"
+        "    FIXED,\n"
+        "    BROKEN,\n"
+        "    DEAD\n"
+        "  } m_Status;\n"
+        "  double m_Ratio;\n"
+        "  int m_Sum;\n"
+        "}"));
 
-  // assert ( whitespaceMatch ( b . field ( "m_Other" ), "struct\n"
-  //   "{\n"
-  //   "  int m_Length;\n"
-  //   "  enum\n"
-  //   "  {\n"
-  //   "    NEW,\n"
-  //   "    FIXED,\n"
-  //   "    BROKEN,\n"
-  //   "    DEAD\n"
-  //   "  } m_Status;\n"
-  //   "  double m_Ratio;\n"
-  //   "}") );
+    assert(whitespaceMatch(b, "struct\n"
+        "{\n"
+        "  int m_Length;\n"
+        "  enum\n"
+        "  {\n"
+        "    NEW,\n"
+        "    FIXED,\n"
+        "    BROKEN,\n"
+        "    READY\n"
+        "  } m_Status;\n"
+        "  double m_Ratio;\n"
+        "  double m_Other;\n"
+        "}"));
 
-  // assert ( whitespaceMatch ( b . field ( "m_Other" ) . field ( "m_Status" ), "enum\n"
-  //   "{\n"
-  //   "  NEW,\n"
-  //   "  FIXED,\n"
-  //   "  BROKEN,\n"
-  //   "  DEAD\n"
-  //   "}") );
+    c.addField("m_Another", a.field("m_Status"));
 
-  // assert ( a . getSize () == 20 );
-  // assert ( b . getSize () == 32 );
-  // b . addField ( "m_Other1", b );
-  // b . addField ( "m_Other2", b );
-  // b . addField ( "m_Other3", b );
-  // assert ( b . field ( "m_Other3" ) . field ( "m_Other2" ) . field ( "m_Other1" ) == b . field ( "m_Other1" ) );
+    assert(whitespaceMatch(c, "struct\n"
+        "{\n"
+        "  int m_First;\n"
+        "  enum\n"
+        "  {\n"
+        "    NEW,\n"
+        "    FIXED,\n"
+        "    BROKEN,\n"
+        "    DEAD\n"
+        "  } m_Second;\n"
+        "  double m_Third;\n"
+        "  enum\n"
+        "  {\n"
+        "    NEW,\n"
+        "    FIXED,\n"
+        "    BROKEN,\n"
+        "    DEAD\n"
+        "  } m_Another;\n"
+        "}"));
 
-  // assert ( b . getSize () == 256);
+    d.addField("m_Another", a.field("m_Ratio"));
 
-  // assert ( whitespaceMatch ( b, "struct\n"
-  //   "{\n"
-  //   "  int m_Length;\n"
-  //   "  enum\n"
-  //   "  {\n"
-  //   "    NEW,\n"
-  //   "    FIXED,\n"
-  //   "    BROKEN,\n"
-  //   "    READY\n"
-  //   "  } m_Status;\n"
-  //   "  double m_Ratio;\n"
-  //   "  struct\n"
-  //   "  {\n"
-  //   "    int m_Length;\n"
-  //   "    enum\n"
-  //   "    {\n"
-  //   "      NEW,\n"
-  //   "      FIXED,\n"
-  //   "      BROKEN,\n"
-  //   "      DEAD\n"
-  //   "    } m_Status;\n"
-  //   "    double m_Ratio;\n"
-  //   "  } m_Other;\n"
-  //   "  struct\n"
-  //   "  {\n"
-  //   "    int m_Length;\n"
-  //   "    enum\n"
-  //   "    {\n"
-  //   "      NEW,\n"
-  //   "      FIXED,\n"
-  //   "      BROKEN,\n"
-  //   "      READY\n"
-  //   "    } m_Status;\n"
-  //   "    double m_Ratio;\n"
-  //   "    struct\n"
-  //   "    {\n"
-  //   "      int m_Length;\n"
-  //   "      enum\n"
-  //   "      {\n"
-  //   "        NEW,\n"
-  //   "        FIXED,\n"
-  //   "        BROKEN,\n"
-  //   "        DEAD\n"
-  //   "      } m_Status;\n"
-  //   "      double m_Ratio;\n"
-  //   "    } m_Other;\n"
-  //   "  } m_Other1;\n"
-  //   "  struct\n"
-  //   "  {\n"
-  //   "    int m_Length;\n"
-  //   "    enum\n"
-  //   "    {\n"
-  //   "      NEW,\n"
-  //   "      FIXED,\n"
-  //   "      BROKEN,\n"
-  //   "      READY\n"
-  //   "    } m_Status;\n"
-  //   "    double m_Ratio;\n"
-  //   "    struct\n"
-  //   "    {\n"
-  //   "      int m_Length;\n"
-  //   "      enum\n"
-  //   "      {\n"
-  //   "        NEW,\n"
-  //   "        FIXED,\n"
-  //   "        BROKEN,\n"
-  //   "        DEAD\n"
-  //   "      } m_Status;\n"
-  //   "      double m_Ratio;\n"
-  //   "    } m_Other;\n"
-  //   "    struct\n"
-  //   "    {\n"
-  //   "      int m_Length;\n"
-  //   "      enum\n"
-  //   "      {\n"
-  //   "        NEW,\n"
-  //   "        FIXED,\n"
-  //   "        BROKEN,\n"
-  //   "        READY\n"
-  //   "      } m_Status;\n"
-  //   "      double m_Ratio;\n"
-  //   "      struct\n"
-  //   "      {\n"
-  //   "        int m_Length;\n"
-  //   "        enum\n"
-  //   "        {\n"
-  //   "          NEW,\n"
-  //   "          FIXED,\n"
-  //   "          BROKEN,\n"
-  //   "          DEAD\n"
-  //   "        } m_Status;\n"
-  //   "        double m_Ratio;\n"
-  //   "      } m_Other;\n"
-  //   "    } m_Other1;\n"
-  //   "  } m_Other2;\n"
-  //   "  struct\n"
-  //   "  {\n"
-  //   "    int m_Length;\n"
-  //   "    enum\n"
-  //   "    {\n"
-  //   "      NEW,\n"
-  //   "      FIXED,\n"
-  //   "      BROKEN,\n"
-  //   "      READY\n"
-  //   "    } m_Status;\n"
-  //   "    double m_Ratio;\n"
-  //   "    struct\n"
-  //   "    {\n"
-  //   "      int m_Length;\n"
-  //   "      enum\n"
-  //   "      {\n"
-  //   "        NEW,\n"
-  //   "        FIXED,\n"
-  //   "        BROKEN,\n"
-  //   "        DEAD\n"
-  //   "      } m_Status;\n"
-  //   "      double m_Ratio;\n"
-  //   "    } m_Other;\n"
-  //   "    struct\n"
-  //   "    {\n"
-  //   "      int m_Length;\n"
-  //   "      enum\n"
-  //   "      {\n"
-  //   "        NEW,\n"
-  //   "        FIXED,\n"
-  //   "        BROKEN,\n"
-  //   "        READY\n"
-  //   "      } m_Status;\n"
-  //   "      double m_Ratio;\n"
-  //   "      struct\n"
-  //   "      {\n"
-  //   "        int m_Length;\n"
-  //   "        enum\n"
-  //   "        {\n"
-  //   "          NEW,\n"
-  //   "          FIXED,\n"
-  //   "          BROKEN,\n"
-  //   "          DEAD\n"
-  //   "        } m_Status;\n"
-  //   "        double m_Ratio;\n"
-  //   "      } m_Other;\n"
-  //   "    } m_Other1;\n"
-  //   "    struct\n"
-  //   "    {\n"
-  //   "      int m_Length;\n"
-  //   "      enum\n"
-  //   "      {\n"
-  //   "        NEW,\n"
-  //   "        FIXED,\n"
-  //   "        BROKEN,\n"
-  //   "        READY\n"
-  //   "      } m_Status;\n"
-  //   "      double m_Ratio;\n"
-  //   "      struct\n"
-  //   "      {\n"
-  //   "        int m_Length;\n"
-  //   "        enum\n"
-  //   "        {\n"
-  //   "          NEW,\n"
-  //   "          FIXED,\n"
-  //   "          BROKEN,\n"
-  //   "          DEAD\n"
-  //   "        } m_Status;\n"
-  //   "        double m_Ratio;\n"
-  //   "      } m_Other;\n"
-  //   "      struct\n"
-  //   "      {\n"
-  //   "        int m_Length;\n"
-  //   "        enum\n"
-  //   "        {\n"
-  //   "          NEW,\n"
-  //   "          FIXED,\n"
-  //   "          BROKEN,\n"
-  //   "          READY\n"
-  //   "        } m_Status;\n"
-  //   "        double m_Ratio;\n"
-  //   "        struct\n"
-  //   "        {\n"
-  //   "          int m_Length;\n"
-  //   "          enum\n"
-  //   "          {\n"
-  //   "            NEW,\n"
-  //   "            FIXED,\n"
-  //   "            BROKEN,\n"
-  //   "            DEAD\n"
-  //   "          } m_Status;\n"
-  //   "          double m_Ratio;\n"
-  //   "        } m_Other;\n"
-  //   "      } m_Other1;\n"
-  //   "    } m_Other2;\n"
-  //   "  } m_Other3;\n"
-  //   "}" ) );
+    assert(whitespaceMatch(d, "struct\n"
+        "{\n"
+        "  int m_Length;\n"
+        "  enum\n"
+        "  {\n"
+        "    NEW,\n"
+        "    FIXED,\n"
+        "    BROKEN,\n"
+        "    DEAD\n"
+        "  } m_Status;\n"
+        "  int m_Ratio;\n"
+        "  double m_Another;\n"
+        "}"));
 
-  // try
-  // {
-  //   a . addField ( "m_Status", CDataTypeInt () );
-  //   assert ( "addField: missing exception!" == nullptr );
-  // }
-  // catch ( const invalid_argument & e )
-  // {
-  //   assert ( e . what () == "Duplicate field: m_Status"sv );
-  // }
+    assert(a.getSize() == 20);
+    assert(b.getSize() == 24);
+    try
+    {
+        a.addField("m_Status", CDataTypeInt());
+        assert("addField: missing exception!" == nullptr);
+    }
+    catch (const invalid_argument& e)
+    {
+        assert(e.what() == "Duplicate field: m_Status"sv);
+    }
 
-  // try
-  // {
-  //   cout << a . field ( "m_Fail" ) << endl;
-  //   assert ( "field: missing exception!" == nullptr );
-  // }
-  // catch ( const invalid_argument & e )
-  // {
-  //   assert ( e . what () == "Unknown field: m_Fail"sv );
-  // }
+    try
+    {
+        cout << a.field("m_Fail") << endl;
+        assert("field: missing exception!" == nullptr);
+    }
+    catch (const invalid_argument& e)
+    {
+        assert(e.what() == "Unknown field: m_Fail"sv);
+    }
 
-  // try
-  // {
-  //   cout << a . field ( "m_Length" ) . field ( "m_Foo" ) << endl;
-  //   assert ( "field: missing exception!" == nullptr );
-  // }
-  // catch ( const invalid_argument & e )
-  // {
-  //   assert ( whitespaceMatch ( e . what (), "Cannot use field() for type: int" ));
-  // }
-
-  // try
-  // {
-  //   cout << a . field ( "m_Status" ) . field ( "m_Foo" ) << endl;
-  //   assert ( "field: missing exception!" == nullptr );
-  // }
-  // catch ( const invalid_argument & e )
-  // {
-  //   assert ( whitespaceMatch ( e . what (), "Cannot use field() for type: enum\n"
-  //   "{\n"
-  //   "  NEW,\n"
-  //   "  FIXED,\n"
-  //   "  BROKEN,\n"
-  //   "  DEAD\n"
-  //   "}" ));
-  // }
-
-  // try
-  // {
-  //   CDataTypeEnum en;
-  //   en . add ( "FIRST" ) .
-  //        add ( "SECOND" ) .
-  //        add ( "FIRST" );
-  //   assert ( "add: missing exception!" == nullptr );
-  // }
-  // catch ( const invalid_argument & e )
-  // {
-  //   assert ( e . what () == "Duplicate enum value: FIRST"sv );
-  // }
-
-  // CDataTypeArray ar1 ( 10, CDataTypeInt () );
-  // assert ( whitespaceMatch ( ar1, "int[10]") );
-  // assert ( whitespaceMatch ( ar1 . element (), "int") );
-  // CDataTypeArray ar2 ( 11, ar1 );
-  // assert ( whitespaceMatch ( ar2, "int[11][10]") );
-  // assert ( whitespaceMatch ( ar2 . element (), "int[10]") );
-  // assert ( whitespaceMatch ( ar2 . element () . element (), "int") );
-  // CDataTypeArray ar3 ( 10, CDataTypeArray ( 20, CDataTypePtr ( CDataTypeInt () ) ) );
-  // assert ( whitespaceMatch ( ar3, "int*[10][20]") );
-  // assert ( whitespaceMatch ( ar3 . element (), "int*[20]") );
-  // assert ( whitespaceMatch ( ar3 . element () . element (), "int*") );
-  // assert ( whitespaceMatch ( ar3 . element () . element () . element (), "int") );
-  // CDataTypePtr ar4  ( ar1 . element () );
-  // assert ( whitespaceMatch ( ar4, "int*") );
-  // assert ( whitespaceMatch ( ar4 . element (), "int") );
-  // CDataTypePtr ar5  ( b . field ( "m_Status" ) );
-  // assert ( whitespaceMatch ( ar5, "enum\n"
-  //   "{\n"
-  //   "  NEW,\n"
-  //   "  FIXED,\n"
-  //   "  BROKEN,\n"
-  //   "  READY\n"
-  //   "}*") );
-  // assert ( whitespaceMatch ( ar5 . element (), "enum\n"
-  //   "{\n"
-  //   "  NEW,\n"
-  //   "  FIXED,\n"
-  //   "  BROKEN,\n"
-  //   "  READY\n"
-  //   "}") );
-  // CDataTypePtr ar6 ( ar3 . element () . element () );
-  // assert ( whitespaceMatch ( ar6, "int**") );
-  // assert ( whitespaceMatch ( ar6 . element (), "int*") );
-  // assert ( whitespaceMatch ( ar6 . element () . element (), "int") );
-  // CDataTypePtr ar7 ( CDataTypeArray ( 50, ar6 ) );
-  // assert ( whitespaceMatch ( ar7, "int**(*)[50]") );
-  // assert ( whitespaceMatch ( ar7 . element (), "int**[50]") );
-  // assert ( whitespaceMatch ( ar7 . element () . element (), "int**") );
-  // assert ( whitespaceMatch ( ar7 . element () . element () . element (), "int*") );
-  // assert ( whitespaceMatch ( ar7 . element () . element () . element () . element (), "int") );
-  // CDataTypeArray ar8 ( 25, ar7 );
-  // assert ( whitespaceMatch ( ar8, "int**(*[25])[50]") );
-  // CDataTypePtr ar9 ( ar8 );
-  // assert ( whitespaceMatch ( ar9, "int**(*(*)[25])[50]") );
-  // a . addField ( "m_Ar1", ar1 ) .
-  //     addField ( "m_Ar2", ar2 ) .
-  //     addField ( "m_Ar3", ar3 ) .
-  //     addField ( "m_Ar4", ar4 ) .
-  //     addField ( "m_Ar5", ar5 ) .
-  //     addField ( "m_Ar6", ar6 ) .
-  //     addField ( "m_Ar7", ar7 ) .
-  //     addField ( "m_Ar8", ar8 ) .
-  //     addField ( "m_Ar9", ar9 );
-  // assert ( whitespaceMatch ( a, "struct\n"
-  //   "{\n"
-  //   "  int m_Length;\n"
-  //   "  enum\n"
-  //   "  {\n"
-  //   "    NEW,\n"
-  //   "    FIXED,\n"
-  //   "    BROKEN,\n"
-  //   "    DEAD\n"
-  //   "  } m_Status;\n"
-  //   "  double m_Ratio;\n"
-  //   "  int m_Sum;\n"
-  //   "  int m_Ar1[10];\n"
-  //   "  int m_Ar2[11][10];\n"
-  //   "  int* m_Ar3[10][20];\n"
-  //   "  int* m_Ar4;\n"
-  //   "  enum\n"
-  //   "  {\n"
-  //   "    NEW,\n"
-  //   "    FIXED,\n"
-  //   "    BROKEN,\n"
-  //   "    READY\n"
-  //   "  }* m_Ar5;\n"
-  //   "  int** m_Ar6;\n"
-  //   "  int**(* m_Ar7)[50];\n"
-  //   "  int**(* m_Ar8[25])[50];\n"
-  //   "  int**(*(* m_Ar9)[25])[50];\n"
-  //   "}") );
-  // a . addField ( "m_Madness", CDataTypeArray ( 40, CDataTypePtr ( a ) ) );
-  // assert ( whitespaceMatch ( a, "struct\n"
-  //   "{\n"
-  //   "  int m_Length;\n"
-  //   "  enum\n"
-  //   "  {\n"
-  //   "    NEW,\n"
-  //   "    FIXED,\n"
-  //   "    BROKEN,\n"
-  //   "    DEAD\n"
-  //   "  } m_Status;\n"
-  //   "  double m_Ratio;\n"
-  //   "  int m_Sum;\n"
-  //   "  int m_Ar1[10];\n"
-  //   "  int m_Ar2[11][10];\n"
-  //   "  int* m_Ar3[10][20];\n"
-  //   "  int* m_Ar4;\n"
-  //   "  enum\n"
-  //   "  {\n"
-  //   "    NEW,\n"
-  //   "    FIXED,\n"
-  //   "    BROKEN,\n"
-  //   "    READY\n"
-  //   "  }* m_Ar5;\n"
-  //   "  int** m_Ar6;\n"
-  //   "  int**(* m_Ar7)[50];\n"
-  //   "  int**(* m_Ar8[25])[50];\n"
-  //   "  int**(*(* m_Ar9)[25])[50];\n"
-  //   "  struct\n"
-  //   "  {\n"
-  //   "    int m_Length;\n"
-  //   "    enum\n"
-  //   "    {\n"
-  //   "      NEW,\n"
-  //   "      FIXED,\n"
-  //   "      BROKEN,\n"
-  //   "      DEAD\n"
-  //   "    } m_Status;\n"
-  //   "    double m_Ratio;\n"
-  //   "    int m_Sum;\n"
-  //   "    int m_Ar1[10];\n"
-  //   "    int m_Ar2[11][10];\n"
-  //   "    int* m_Ar3[10][20];\n"
-  //   "    int* m_Ar4;\n"
-  //   "    enum\n"
-  //   "    {\n"
-  //   "      NEW,\n"
-  //   "      FIXED,\n"
-  //   "      BROKEN,\n"
-  //   "      READY\n"
-  //   "    }* m_Ar5;\n"
-  //   "    int** m_Ar6;\n"
-  //   "    int**(* m_Ar7)[50];\n"
-  //   "    int**(* m_Ar8[25])[50];\n"
-  //   "    int**(*(* m_Ar9)[25])[50];\n"
-  //   "  }* m_Madness[40];\n"
-  //   "}") );
-  // assert ( a . field ( "m_Madness" ) . element () . element () . field ( "m_Ar9" ) == a . field ( "m_Ar9" ));
-  // assert ( a . field ( "m_Madness" ) . element () . element () . field ( "m_Ar9" ) != a . field ( "m_Ar8" ));
-  // try
-  // {
-  //   cout << ar2 . field ( "m_Foo" ) << endl;
-  //   assert ( "field: missing exception!" == nullptr );
-  // }
-  // catch ( const invalid_argument & e )
-  // {
-  //   assert ( whitespaceMatch ( e . what (), "Cannot use field() for type: int[11][10]" ));
-  // }
-
-  // try
-  // {
-  //   cout << c . element () << endl;
-  //   assert ( "element: missing exception!" == nullptr );
-  // }
-  // catch ( const invalid_argument & e )
-  // {
-  //   assert ( whitespaceMatch ( e . what (), "Cannot use element() for type: struct\n"
-  //   "{\n"
-  //   "  int m_First;\n"
-  //   "  enum\n"
-  //   "  {\n"
-  //   "    NEW,\n"
-  //   "    FIXED,\n"
-  //   "    BROKEN,\n"
-  //   "    DEAD\n"
-  //   "  } m_Second;\n"
-  //   "  double m_Third;\n"
-  //   "}" ));
-  //}
+    try
+    {
+        CDataTypeEnum en;
+        en.add("FIRST") .
+            add("SECOND") .
+            add("FIRST");
+        assert("add: missing exception!" == nullptr);
+    }
+    catch (const invalid_argument& e)
+    {
+        assert(e.what() == "Duplicate enum value: FIRST"sv);
+    }
 
   return EXIT_SUCCESS;
 }
