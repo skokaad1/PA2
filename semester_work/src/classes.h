@@ -22,46 +22,89 @@
 #include <thread>
 #include <ostream>
 
+#include "classes_parent.h"
+
 class  map {
 
 };
-
-/// parent field
+//=====================================================================================FIELDS
+/// PTH(pathway) field
 /// 
-/// TBD fields, or otherwise board pieces are spots on map for other classes to interact with, this virtual class provides template on how to place them and visualize them
-class field {
-public:
-	void print();
-	
-	virtual bool place(vector<vector<int>> &board);
-
-	void house();
-
-private:
-
+/// pathway field - used for building pathways on gamemap for invaders to walk through
+class PTH_field : public field {
+ public:
+ private:
 };
 
-/// parent invader
+/// TWR(tower) field
 /// 
-/// TBD invaders are player interactible units, this provides template on how to deploy, visualise and work with them, will be split into multiple children classes of different jobs
-class invader {
-public:
-	void damage(int damage);
-
-	void special();
-
-private:
-	int health;
-	int speed;
+/// tower field - enables tower placement
+class TWR_field : public field {
+ public:
+ private:
 };
 
-/// parent tower
+/// BCK(background) field
+/// 
+/// background field - used for filling rest of the map visually
+class BCK_field : public field {
+ public:
+ private:
+};
+
+/// END(ending field) field
+/// 
+/// field at the end of map - used for registering win condition
+class END_field : public field {
+ public:
+ private:
+};
+
+//=====================================================================================INVADERS
+
+/// SCT(scout) invader
+/// 
+/// an invader with high initiative, moves fast
+class SCT_invader : public invader {
+ public:
+ private:
+};
+
+/// ARM(armored) invader
+/// 
+/// an invader with low initiative, moves slow, special move
+class ARM_invader : public invader {
+ public:
+ private:
+};
+
+/// INT(caster) invader
+/// 
+/// bad stats, good ability
+class INT_invader : public invader {
+ public:
+ private:
+};
+
+//=====================================================================================TOWERS
+
+/// BSC(basic) tower
+/// 
+/// Basic tower has no special attacks and only shoots one shot at one target
+class BSC_tower : public tower {
+public:
+
+private:
+};
+
+/// LGHT(lightning) tower
 /// 
 /// TBD towers are ai placed and controlled defenses, this provides template on how they attack, visualize 
-class tower {
-public:
-	void attack(invader& target);
-private:
+class LGHT_tower : public tower {
+ public:
+
+ private:
 };
+
 
 #endif

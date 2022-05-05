@@ -1,22 +1,16 @@
 using namespace std;
 #include "classes.h"
 
-//arena========================================
-void field::print() {
-	cout << "test arena print " << endl; // testing
-}
-//=============================================
-//
-//invader======================================
-void invader::damage(int damage) {
-	cout << "test invader damage " << endl; // testing
-}
+//arena children definitions========================================
 
 //=============================================
 //
-//tower========================================
-void tower::attack(invader& target) {
-	cout << "test tower attack " << endl; // testing
-}
+//invader children definitions======================================
+
+
+//=============================================
+//
+//tower children definitions========================================
+
 //=============================================
 
