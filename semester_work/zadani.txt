@@ -1,40 +1,22 @@
-Naprogramujte jendoduchou grafickou tower ATTACK hru (nejedná se o tower defense)
+Tower attack
 
-Váš engine:
+Specification: maps, towers and invaders will be implemented in the form of template classes, whose specifications will be provided in form of loadable files. 
+Furthermore a few units,handfull of towers and atleast a single map will be implemented baseline without the need of being loaded from a file. 
+The game itself will contain two main components, individual battles which will span a short time, and last in between 2 to 5 minutes. 
+And a campaign, linking these battles together, providing the player the ability to upgrade or alter
+the units he possesess or obtain new ones. The battles will play out by the player and ai both taking turns, each invader and tower will have a specified
+initiative which will determine the order in which the commands happen. The commands themselves will be orders the player gives or the ai randomly performs,
+in case of the invader available commands will be move or perform an ability (not every unit will have one), or deploy a new unit from available pool. 
+The towers on the other hand will randomly choose one, which is able to attack and thereafter do so, striking the closes unit. Attacks themselves after determined
+will play a short animation and thereafter substracting the inflicted damage from the invaders health pool. The game's outcome will be decided once a set number of 
+turns passes, or once a invader will reach the end of the map. The game will be implemented graphically using the SDL2 
+library, using simplistic pixelated graphics.
 
-ze souboru nahraje definici ÚTOČNÍKŮ (jméno, životy, rychlost, útok, odolnost na určitý typ věže ...)
-ze souboru nahraje možné mapy a typy obranných věží (životy, rychlost, dosah, útok, odolnost na určitý typ útočníka,...)
-implementuje jednoduchou interakci věž vs. útočníci (útok, proběhnutí, ...), počitadlo skóre, detekci vítězství (po nezabití x útočníků)
-implementuje jednoduchou AI řídící rozmisťování věží
-umožňuje ukládat a načítat rozehrané hry
-Engine může fungovat jako real-time hra, či tahová hra.
-
-Jak může vypadat mapa?
-
-" "prázdné místa pro pohyb útočníku a stavbu věží, I označuje věže, # označuje zeď, @ a %
-jsou různé druhy útočníků, <= jsou vstupy/výstupy z mapy.
-
- 
-#################################################
-#                        #       @@  #   @@  @@<=3
-#         #              #    %I  @  ###        #
-#         #              #    %#  @    #    I   #
-<=%%%     #              I    %#       #@  @@  <=1
-#         #              I    %#       @@   I   #
-#                        I    %#                #
-#                 %%%       %%%#    @          <=2
-#################################################                      
-Cesta kudy se budou útočníci ubírat bude vždy nejkratší možná vzhledem ke zdím a věžím.
-Můžete navíc implementovat více strategií procházení, kde každý útočník bude mít svoji strategii.
-Například slabší marvenci se mohou snažit vyhýbat věžím, naopak odolnější zase mohou být pomalejší
-a vždy musí udělat alespoň X kroků rovně.
-
-Hráč volí vstup a typy útočníků
-
-Kde lze využít polymorfismus? (doporučené)
-
-Parametry útočníků: znak, barva, rychlst, životy, ...
-Efekty útoku věží: zranění, zpomalení, ...
-Políčka mapy: volno, věž, útočník ...
-Uživatelské rozhraní: konzole, ncurses, SDL, OpenGL (různé varianty), ...
-Ukázky:
+Polymorphism: Most proliferated use of polymorphism will be between the towers and invaders, both of them being separated into multiple "jobs" with different
+archetypes, visualisations or capabilities. Both of them originating from purely virtual parent classes tower or invader respectively. When loading from a file, these will be 
+specified in terms of "job" attribute, provided alongside the ones like health/name/speed etc. Special moves of units and attack patterns of towers as well as specific unique graphics
+will be the main reasons for this. Fields the game is played on will also be inheritors of virtual a parent class "field"
+these will be separeted into pathway "fields", tower spot "fields" and non use "fields" where a texture will be generated to block it off visually. These fields will inherit the placement
+function, which will place them in order of pathway-tower-filler with rules pertaining to each one, pathway and tower will both have different versions of the placement function,
+where a tower or an invader is placed on it respectively. Player UI icons will be done through polymorphism as well, coming from a parent "button class" and sharing action definitions,
+but differing in specific functionalities as well as different visual components, be it text, placement shape etc.
