@@ -205,11 +205,6 @@ class CDataTypeStruct : public CData{
   }
   
   ~CDataTypeStruct(){
-    for (auto it = struct_storage.begin(); it != struct_storage.end(); it++){
-     // delete it->second;
-    //cout << it->second.shared() << endl;
-    //delete it->second;
-    }
   }
 
   size_t getSize() const{

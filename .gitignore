@@ -1,2 +1,12 @@
 # Default ignored files
-/a.out/
+Doxyfile
+/semester_work/.vs/
+*.out
+*.bin
+*.sln
+*.vcxproj.*
+*.vcxproj
+student.o
+test.o
+massif.out.*
+testing/
