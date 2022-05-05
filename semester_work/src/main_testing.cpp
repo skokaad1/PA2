@@ -1,16 +1,12 @@
-//#include "classes.h"
-//#include "graphical_api.cpp"
-#include "classes.h"
+
+#include "classes/child_field/PTH_field.h"
 
 using namespace std;
 int main ( void )
 { 
-	cout << "========================" << endl;
-	SCT_invader b;
-	b.damage(2);
-	//window a;
-	//SDL_Quit();
+	PTH_field b;
+	b.render();
+
 	return EXIT_SUCCESS;
 }
-
 

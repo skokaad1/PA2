@@ -1,27 +1,6 @@
 #ifndef _CLASSES_H
 #define _CLASSES_H
 
-#include <cstring>
-#include <cstdlib>
-#include <cstdio>
-#include <cassert>
-#include <iostream>
-#include <iomanip>
-#include <string>
-#include <vector>
-#include <map>
-#include <list>
-#include <set>
-#include <queue>
-#include <stack>
-#include <deque>
-#include <algorithm>
-#include <unordered_map>
-#include <unordered_set>
-#include <memory>
-#include <thread>
-#include <ostream>
-
 #include "classes_parent.h"
 
 class  map {
@@ -32,32 +11,32 @@ class  map {
 /// 
 /// pathway field - used for building pathways on gamemap for invaders to walk through
 class PTH_field : public field {
- public:
- private:
+public:
+private:
 };
 
 /// TWR(tower) field
 /// 
 /// tower field - enables tower placement
 class TWR_field : public field {
- public:
- private:
+public:
+private:
 };
 
 /// BCK(background) field
 /// 
 /// background field - used for filling rest of the map visually
 class BCK_field : public field {
- public:
- private:
+public:
+private:
 };
 
 /// END(ending field) field
 /// 
 /// field at the end of map - used for registering win condition
 class END_field : public field {
- public:
- private:
+public:
+private:
 };
 
 //=====================================================================================INVADERS
@@ -66,8 +45,11 @@ class END_field : public field {
 /// 
 /// an invader with high initiative, moves fast
 class SCT_invader : public invader {
- public:
- private:
+public:
+	SCT_invader();
+	void damage(int damage);
+
+private:
 };
 
 /// ARM(armored) invader
@@ -75,6 +57,9 @@ class SCT_invader : public invader {
 /// an invader with low initiative, moves slow, special move
 class ARM_invader : public invader {
  public:
+	 ARM_invader() : invader(10, 3, 2) {
+
+	 }
  private:
 };
 
@@ -83,6 +68,9 @@ class ARM_invader : public invader {
 /// bad stats, good ability
 class INT_invader : public invader {
  public:
+	 INT_invader() : invader(5, 3, 4) {
+
+	 }
  private:
 };
 
