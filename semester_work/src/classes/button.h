@@ -13,7 +13,5 @@ class button {
 	 virtual void interact();
 
 
-
-	 virtual ~button() = default;
  private:
 };

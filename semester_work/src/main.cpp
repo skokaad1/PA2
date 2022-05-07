@@ -1,16 +1,16 @@
-//#include "classes.h"
-#include "graphical_api.cpp"
-#include "classes.h"
+
+#include "classes/includes.h"
+#include "classes/graphical_api.cpp"
 
 using namespace std;
+
 int main ( void )
 { 
-	cout << "========================" << endl;
-	invader b;
-	b.damage(2);
-	window a;
-	a.draw();
-	return EXIT_SUCCESS;
+	//newterm(char*);
+	window a = window();
+	while (1) {
+		a.StartMenu();
+	}
 }
 
 
