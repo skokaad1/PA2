@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../tower.h"
-#include "../includes.h"
 
 /// BSC(basic) tower
 /// 

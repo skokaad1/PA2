@@ -9,6 +9,8 @@
 #include <iostream>
 #include <ostream>
 
+#include "includes.h"
+
 /// Menu parent class
 /// 
 /// provides template for working with menus, with both functionality and graphical implementation

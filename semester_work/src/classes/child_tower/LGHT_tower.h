@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../tower.h"
-#include "../includes.h"
 
 
 /// LGHT(lightning) tower

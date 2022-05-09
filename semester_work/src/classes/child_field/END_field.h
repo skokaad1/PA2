@@ -8,5 +8,10 @@
 /// field at the end of map - used for registering win condition
 class END_field : public field {
 public:
+	END_field();
+
+	string name() const;
+
+	string sprite() const;
 private:
 };

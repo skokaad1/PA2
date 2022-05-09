@@ -1,6 +1,6 @@
 
 #include "classes/includes.h"
-#include "classes/graphical_api.cpp"
+#include "classes/graphical_api.h"
 
 using namespace std;
 

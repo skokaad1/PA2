@@ -12,12 +12,18 @@ using namespace std;
 //		print()
 class field {
  public:
-	void print();
+	field();
+
+	//virtual ~field() = default;
 	
-	bool place(vector<int> &board);
+	//bool place(vector<int> &board);
 
-	void house();
+	//void house();
 
- private:
+	string name() const;
+
+	virtual string sprite() const = 0;
+
+ protected:
 
 };

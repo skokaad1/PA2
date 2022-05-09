@@ -1,6 +1,5 @@
 #pragma once
 
-#include "include.h"
 #include "../invader.h"
 
 /// SCT(scout) invader

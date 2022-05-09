@@ -1,6 +1,19 @@
-using namespace std;
+﻿using namespace std;
+
 #include "field.h"
 
-void field::print() {
-	cout << "test arena print " << endl; // testing
+field::field() {
+
+}
+
+string field::name() const {
+	return "ERR";
+}
+
+string field::sprite() const {
+	stringstream ss;
+	for (int i = 0; i < FIELD_X + FIELD_Y; i++) {
+		ss << ".";
+	}
+	return ss.str();
 }

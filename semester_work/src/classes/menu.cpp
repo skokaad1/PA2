@@ -2,6 +2,7 @@
 using namespace std;
 
 #include "menu.h"
+
 	/*void print_menu() {
 		int counter = 2;
 		box(win, 0, 0);
@@ -12,7 +13,7 @@ using namespace std;
 	}*/
 	
 	int Menu::print_menu(int a) {
-		int counter = 2;
+		int counter = MENU_SPACING;
 		box(win, 0, 0);
 		int pos_of_a;
 		int counter_ofitems = 0;
@@ -23,7 +24,7 @@ using namespace std;
 			counter_ofitems++;
 
 			mvwaddstr(win, 0, counter, item.c_str());
-			counter += item.length() + 2;
+			counter += item.length() + MENU_SPACING;
 		}
 		return pos_of_a;
 	}
@@ -54,7 +55,6 @@ using namespace std;
 			highlight(0);
 				while (1) {
 					input = wgetch(win);
-					//cout << input << endl;
 					if (input == 97) {
 						selected--;
 						if (selected > items.size() - 1) {
