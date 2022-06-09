@@ -5,5 +5,5 @@
 
 class START_menu : public Menu {
 public:
-	START_menu(WINDOW* in_win);
+	START_menu( WINDOW* &win);
 };

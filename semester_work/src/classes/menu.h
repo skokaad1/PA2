@@ -9,6 +9,9 @@
 #include <iostream>
 #include <ostream>
 
+//#include "graphical_api.h"
+#include <ncurses.h>
+
 #include "includes.h"
 
 /// Menu parent class
@@ -17,17 +20,15 @@
 class Menu {
 public:
 	Menu();
-	Menu(WINDOW* in_win, vector<string> add_items);
+	Menu( WINDOW* &win, vector<string> add_items);
 	virtual ~Menu() = default;
 
-	int deploy();
+	int deploy(WINDOW*& win);
 
 protected:
 
-	int print_menu(int a);
+	int print_menu(WINDOW*& win, int a);
 
-	void highlight(int a);
-
-	WINDOW* win;
+	void highlight(WINDOW*& win, int a);
 	vector<string> items;
 };

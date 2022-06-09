@@ -10,8 +10,12 @@ class END_field : public field {
 public:
 	END_field();
 
+	~END_field();
+
 	string name() const;
 
 	string sprite() const;
+
+	virtual shared_ptr<field> clone() const;
 private:
 };

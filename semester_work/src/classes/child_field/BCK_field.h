@@ -11,9 +11,14 @@ class BCK_field : public field {
 public:
 	BCK_field();
 
+	~BCK_field();
+
 	string name() const;
 
 	string sprite() const;
+
+	virtual shared_ptr<field> clone() const;
+
 private:
 	string house;
 };

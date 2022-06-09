@@ -32,3 +32,6 @@
 
 #define MAP_X (W_LENGTH)/FIELD_X - 2 - 2 - 2 - FIELD_X
 #define MAP_Y (W_HEIGHT)/FIELD_Y - 2 - 2 - 1 - FIELD_Y
+
+#define EXIT 0
+#define BACK 1

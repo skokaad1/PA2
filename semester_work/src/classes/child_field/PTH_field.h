@@ -14,6 +14,10 @@ public:
 	~PTH_field();
 
 	string name() const;
+
+	string sprite() const;
+
+	virtual shared_ptr<field> clone() const;
 private:
-	shared_ptr<invader> invader_here;
+	//shared_ptr<invader> invader_here;
 };

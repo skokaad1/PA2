@@ -20,11 +20,15 @@ class invader {
 
 	virtual ~invader() = default;
 
-	void damage(int damage);
+	//void damage(int damage);
 
-	void special();
+	//void special();
 
-	void render(int x, int y);
+	//void render(int x, int y);
+
+	virtual string sprite() const = 0;
+
+	virtual shared_ptr<invader> clone() const = 0;
 
  private:
 	int health;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "includes.h"
+#include "tower.h"
 using namespace std;
 
 /// parent field
@@ -14,15 +15,16 @@ class field {
  public:
 	field();
 
-	//virtual ~field() = default;
-	
-	//bool place(vector<int> &board);
+	virtual ~field() = default;
 
-	//void house();
-
-	string name() const;
+	virtual string name() const = 0;
 
 	virtual string sprite() const = 0;
+
+	void inhabit(shared_ptr<tower> tower_ptr);
+
+	virtual shared_ptr<field> clone() const = 0;
+
 
  protected:
 

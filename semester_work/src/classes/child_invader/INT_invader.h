@@ -7,8 +7,9 @@
 /// bad stats, good ability
 class INT_invader : public invader {
  public:
-	 INT_invader() : invader(5, 3, 4) {
+	 INT_invader();
+	 string sprite() const;
 
-	 }
+	 shared_ptr<invader> clone() const;
  private:
 };

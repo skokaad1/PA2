@@ -8,9 +8,9 @@ int main ( void )
 { 
 	//newterm(char*);
 	window a = window();
-	while (1) {
 		a.StartMenu();
-	}
+		endwin();
+		return 0;
 }
 
 

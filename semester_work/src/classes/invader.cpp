@@ -15,7 +15,14 @@ invader::invader() {
 }
 
 
-void invader::damage(int damage) {
+/*void invader::damage(int damage) {
 	cout << "sucess" << endl;
-}
+}*/
 
+/*string invader::sprite() const {
+	return "errr";
+}*/
+
+/*shared_ptr<invader> invader::clone() const{
+	return make_shared<invader>(invader());
+}*/

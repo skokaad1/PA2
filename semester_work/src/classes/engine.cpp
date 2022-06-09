@@ -1,8 +1,6 @@
 using namespace std;
 
-#include <stdlib.h>
 #include <stdio.h>
-#include "includes.h"
 #include <curses.h>
 #include <string.h>
 #include <chrono>
@@ -11,52 +9,45 @@ using namespace std;
 
 #include "field.h"
 #include "child_field/fields.h"
+#include "Player_profile.h"
+
+#include "map_create.cpp"
+#include "child_menu/GAME_menu.h"
+#include "child_invader/invaders.h"
+
+#include <random>
+#include <vector>
 
 
-
+/// game start and run
+/// 
+/// realizes base game loop, provides graphical realization of game elements, calls on map creation
 class engine {
 private:
-	struct Node {
-		shared_ptr<field> build_field;
+	int Random_num(int min, int  max, int seed) {
+		typedef std::mt19937 rng_type;
+		std::uniform_int_distribution<rng_type::result_type> udist(min, max);
+		rng_type rng;
 
-		Node &Left;
-		Node &Down;
-		Node &Up;
-		Node &Right;
-	};
+		rng_type::result_type const seedval = time(0) + seed;
 
-public:
+		rng.seed(seedval);
 
-	void map_create() {
-
-
-		for (int i = 0; i < MAP_X + 2; i++) {
-			for (int k = 0; k < MAP_Y + 2; k++) {
-				grid[i][k].build_field = make_shared<BCK_field>(BCK_field());
-			}
-		}
-
-		for (int i = 0; i < MAP_X + 2; i++) {
-			grid[i][0].build_field = make_shared<EDG_field>(EDG_field());
-			grid[i][MAP_Y + 1].build_field = make_shared<EDG_field>(EDG_field());
-		}
-		for (int i = 0; i < MAP_Y + 2; i++) {
-			grid[0][i].build_field = make_shared<EDG_field>(EDG_field());
-			grid[MAP_X + 1][i].build_field = make_shared<EDG_field>(EDG_field());
-		}
-
-		grid[0][(rand() % MAP_Y) + 2].build_field = make_shared<END_field>(END_field());
-
+		rng_type::result_type random_number = udist(rng);
+		return random_number;
 	}
 
-	engine(WINDOW* inc_win) {
-		win = inc_win;
+	public:
+
+	engine(WINDOW* &win) {
 		wclear(win);
 		box(win, 0, 0);
-
 	}
 
-	void one_block(string image, int y_anchor, int x_anchor) {
+	~engine() {
+	}
+
+	void one_block(WINDOW*& win,string image, int y_anchor, int x_anchor) {
 		string a = image.substr(0, 2);
 		string b = image.substr(2, 2);
 		mvwprintw(win, y_anchor, x_anchor, a.c_str());
@@ -64,31 +55,60 @@ public:
 
 	}
 
-	void Print_grid() {
+	void Print_grid(WINDOW*& win) {
 		for (int i = 0; i < MAP_X + 2; i++) {
 			for (int k = 0; k < MAP_Y + 2; k++) {
-				one_block(grid[i][k].build_field->sprite(), 2 + (k * 2), 3 + (i * 2));
+				one_block(win,grid[i][k]->sprite(), 4 + (k * 2), 5 + (i * 2));
 			}
 		}
 	}
 
-	void start() {
-		int test = 0;
-		map_create();
-		Print_grid();
-		while (1) {
-			std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();;
-			std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-			sleep(0.1 / (std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()));
-			wrefresh(win);
-			box(win, 0, 0);
-			test++;
+	int start(WINDOW*& win) { // 0 = terminate
+		new_map generator = new_map(win, grid);
+		vector<pair<int, int>> towers;
+		vector<pair<int,int>> path = generator.build_map(grid, towers);
+		long unsigned int moves = towers.size() * 2;
+		vector<bool> turn = { 1 };
+		vector<shared_ptr<invader>> deployed;
+		profile player = profile();
+		for (long unsigned int i = 1; i < moves; i++) {
+			if (turn[i - 1] == 0) {
+				turn.push_back(1);
+			}
+			else {
+				turn.push_back(0);
+			}
 		}
+		Print_grid(win);
+		GAME_menu interface = GAME_menu(win,player);
+
+		for (long unsigned int i = 0; i < moves; i++) {
+			int input = 0;
+			std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();;
+			if (turn[i] == 1) {
+				input = interface.start(win, deployed);
+				if (input == EXIT) {
+					return EXIT;
+				}
+				if (input == BACK) {
+					return BACK;
+				}
+			}
+			else {
+			
+			}
+			Print_grid(win);
+			std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+			sleep(300 / (std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()));
+			wrefresh(win);
+			//box(win, 0, 0);
+		}
+		return 1;
 	}
 
 private:
-	WINDOW* win;
-	Node grid[MAP_X + 2][ MAP_Y + 2];
+	int path_length;
+	vector<vector<shared_ptr<field>>> grid;
 };
 
 

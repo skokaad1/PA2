@@ -5,10 +5,17 @@ using namespace std;
 END_field::END_field() : field() {
 }
 
+END_field::~END_field(){
+}
+
 string END_field::name() const {
-	return "BCK";
+	return "END";
 }
 
 string END_field::sprite() const {
-	return "<=__";
+	return "<-  ";
+}
+
+ shared_ptr<field> END_field::clone() const {
+	return make_shared<END_field>(END_field());
 }

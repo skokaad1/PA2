@@ -30,7 +30,7 @@ class window {
      window();
      ~window();
 
-     void StartMenu();
+     int StartMenu();
  private:
      int y_max;
      int x_max;
