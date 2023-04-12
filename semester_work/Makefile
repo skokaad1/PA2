@@ -2,12 +2,12 @@
 # PA2 Makefile template
 CC	=	gcc
 CXX	=	g++
-CXXFLAGS	=       -std=c++14 -pedantic -Wall
+CXXFLAGS	=       -std=c++17 -pedantic -Wall
 CFLAGS	= 	-Wall -pedantic -g3 
 #-fsanitize=address
 LIBS	=	
 #-lpthread
-LFLAGS = 
+LFLAGS = -lncurses
 #-pthread -lrt
 
 # all .o modules to make
@@ -16,7 +16,7 @@ MODULES	=
 
 # all programs to build
 #         ls *.cpp | sed 's/.cpp//g' | tr '\n' ' '
-ALL	= 
+ALL	= ls -r src/*.cpp
 
 # build all
 default:	$(ALL) $(MODULES)

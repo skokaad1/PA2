@@ -65,7 +65,7 @@ class CData{
     }  
     virtual shared_ptr<CData> clone () const = 0;
 
-  //    virtual shared_ptr<CData> CloneImpl() const =0; 
+  //  virtual shared_ptr<CData> CloneImpl() const =0; 
   //  virtual CData * clone () = 0 ;
   protected:
   string name;

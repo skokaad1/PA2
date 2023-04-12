@@ -3,12 +3,14 @@
 #include "../menu.h"
 #include <curses.h>
 #include "../Player_profile.h"
+#include "../field.h"
+#include "../child_field/fields.h"
 
 class GAME_menu : public Menu {
 public:
 	GAME_menu( WINDOW* &win, profile player);
 
-	int start(WINDOW*& win, vector<shared_ptr<invader>> &deployed);
+	int start(WINDOW*& win, vector<shared_ptr<invader>> &deployed, vector<vector<shared_ptr<field>>> & grid, vector<pair<int, int>> &path);
 
 	pair<int,int> deploy(WINDOW*& win);
 

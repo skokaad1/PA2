@@ -8,7 +8,7 @@ using namespace std;
 		selection.push_back(items);
 		player.get_team(cur_team);
 		for (shared_ptr<invader> i : cur_team) {
-			selection.push_back({ "Move","Deploy","Special" });
+			selection.push_back({ "Deploy","Move","Special" });
 		}
 	}
 
@@ -146,7 +146,7 @@ using namespace std;
 		}
 	}
 
-	int GAME_menu::start(WINDOW*& win, vector<shared_ptr<invader>> &deployed) { // 0 = Exit // 0 = back
+	int GAME_menu::start(WINDOW*& win, vector<shared_ptr<invader>> &deployed, vector<vector<shared_ptr<field>>>& grid, vector<pair<int, int>> &path) { // 0 = Exit // 0 = back
 		pair<int,int> input = deploy(win);
 		if (input.first == 0) {
 			if (input.second == 0) {
@@ -157,13 +157,19 @@ using namespace std;
 			}
 		}
 		else {
-			if (input.second == 0) {
+			if (input.second == 0) { //deploy
+				int i = 0;
+				//mvwprintw(win, W_HEIGHT - 3, 0, "HELP MEEEEEEEEEEEEEEEEEE");
+				shared_ptr<invader> unit = cur_team[input.first-1]->deploy(i);
+				unit = cur_team[input.first - 1]->clone();
+				//mvwprintw(win, 2, 0, unit->sprite().c_str());
+				grid[path[i].first][path[i].second]->inhabit(unit);
+				mvwprintw(win, 2, 0, grid[path[i].first][path[i].second]->sprite().c_str());
+			}
+			if (input.second == 1) { // move
 			
 			}
-			if (input.second == 1) {
-			
-			}
-			if (input.second == 2) {
+			if (input.second == 2) { // special
 			
 			}
 		}

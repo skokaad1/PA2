@@ -9,6 +9,7 @@
 /// pathway field - used for building pathways on gamemap for invaders to walk through
 class PTH_field : public field {
 public:
+
 	PTH_field();
 	
 	~PTH_field();
@@ -18,6 +19,8 @@ public:
 	string sprite() const;
 
 	virtual shared_ptr<field> clone() const;
+
+	void inhabit(shared_ptr<invader> &invader_ptr);
 private:
-	//shared_ptr<invader> invader_here;
+	shared_ptr<invader> housed;
 };

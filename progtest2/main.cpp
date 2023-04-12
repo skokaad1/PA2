@@ -121,37 +121,6 @@ class CVATRegister{
       }
     };
 
-    /*struct comes_before_id{
-      inline bool operator() (const CVAT * const & a, const string & id) { 
-        return a.inner_taxID < id; 
-      }
-    };*/
-    /*struct comes_before_NAME{
-      inline bool operator() (const CVAT& str1,const  CVAT& str2){
-        string help1 = str1.upper_inner_name + " " + str1.upper_inner_addr;
-        string help2 = str2.upper_inner_name + " " + str2.upper_inner_addr;
-        int a = help1.compare(help2);
-        if (str1.inner_name.empty() == 1 || str2.inner_name.empty() == 1){
-          if (str1.inner_name.empty() == 1 && str2.inner_name.empty() == 1){
-          a
-           = 1;
-          }
-          else if(str1.inner_name.empty() == 1){
-          a = 1;
-          }
-          else{
-          a = 0;
-          }
-        }
-        if (a < 0 ){
-          return 1;
-        }
-        else {
-          return 0;
-        }
-      }
-    };*/
-
     void SortCompanies(){
       sort(Database.begin(),Database.end(), comes_before_NAME());
     }

@@ -2,6 +2,7 @@
 
 #include "includes.h"
 #include "tower.h"
+#include "invader.h"
 using namespace std;
 
 /// parent field
@@ -22,6 +23,8 @@ class field {
 	virtual string sprite() const = 0;
 
 	void inhabit(shared_ptr<tower> tower_ptr);
+
+	void inhabit(shared_ptr<invader> invader_ptr);
 
 	virtual shared_ptr<field> clone() const = 0;
 

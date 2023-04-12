@@ -30,6 +30,7 @@ class invader {
 
 	virtual shared_ptr<invader> clone() const = 0;
 
+	shared_ptr<invader> deploy(int& a);
  private:
 	int health;
 	int speed;

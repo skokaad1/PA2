@@ -1,11 +1,14 @@
 # Default ignored files
 Doxyfile
+/.vs
 /semester_work/.vs/
+/semester_work/x64
 *.out
 *.bin
 *.sln
 *.vcxproj.*
 *.vcxproj
+*.gch
 student.o
 test.o
 massif.out.*

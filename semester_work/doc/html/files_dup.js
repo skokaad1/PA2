@@ -1,4 +1,5 @@
 var files_dup =
 [
-    [ "src", "dir_68267d1309a1af8e8297ef4c3efbcdba.html", "dir_68267d1309a1af8e8297ef4c3efbcdba" ]
+    [ "classes", "dir_b02e4219757ae4e3a0f1714873865bbf.html", "dir_b02e4219757ae4e3a0f1714873865bbf" ],
+    [ "main.cpp", "main_8cpp.html", "main_8cpp" ]
 ];

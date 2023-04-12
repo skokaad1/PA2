@@ -84,9 +84,8 @@ private:
 
 		for (long unsigned int i = 0; i < moves; i++) {
 			int input = 0;
-			std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();;
 			if (turn[i] == 1) {
-				input = interface.start(win, deployed);
+				input = interface.start(win, deployed, grid, path);
 				if (input == EXIT) {
 					return EXIT;
 				}
@@ -97,9 +96,7 @@ private:
 			else {
 			
 			}
-			Print_grid(win);
-			std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-			sleep(300 / (std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()));
+			//Print_grid(win);
 			wrefresh(win);
 			//box(win, 0, 0);
 		}

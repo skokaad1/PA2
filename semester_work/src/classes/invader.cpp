@@ -1,11 +1,10 @@
 using namespace std;
 #include "invader.h"
 
-invader::invader(int inc_health, int inc_speed, int inc_initiative): 
-	health(inc_health),
-	speed(inc_speed),
-	initiative(inc_initiative)
-	{
+invader::invader(int inc_health, int inc_speed, int inc_initiative) {
+	health = inc_health;
+	speed = inc_speed;
+	initiative = inc_initiative;
 }
 
 invader::invader() {
@@ -14,15 +13,8 @@ invader::invader() {
 	initiative = 1;
 }
 
-
-/*void invader::damage(int damage) {
-	cout << "sucess" << endl;
-}*/
-
-/*string invader::sprite() const {
-	return "errr";
-}*/
-
-/*shared_ptr<invader> invader::clone() const{
-	return make_shared<invader>(invader());
-}*/
+shared_ptr<invader> invader::deploy(int &a) {
+	a = speed;
+	shared_ptr<invader> unit;//= this->clone();
+	return unit;
+}
